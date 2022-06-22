@@ -5,25 +5,20 @@ Date: June 7, 2022
 Description: Sprite for flappy bird
 */
 import javafx.scene.image.ImageView;
-import javafx.scene.canvas.GraphicsContext;
-import javafx.geometry.Rectangle2D;
-import javafx.scene.Node;
-import javafx.animation.ScaleTransition; 
-import javafx.application.Application; 
-import static javafx.application.Application.launch; 
 import javafx.scene.Group; 
-import javafx.scene.Scene; 
-import javafx.scene.paint.Color; 
-import javafx.scene.shape.Circle; 
-import javafx.stage.Stage; 
+import javafx.scene.shape.Path; 
 import javafx.util.Duration; 
 import javafx.scene.image.Image;
 import javafx.scene.layout.*;
-import javafx.animation.TranslateTransition; 
+import javafx.animation.PathTransition;
 import javafx.util.Duration; 
 import javafx.scene.shape.*;
+import java.lang.Math;
 
-public class Sprite
+/**
+An abstract class representing a sprite in the game.
+*/
+public abstract class Sprite
 {
    /**
    x position of sprite
@@ -39,7 +34,7 @@ public class Sprite
    /**
    image of sprite
    */
-   private ImageView image;
+   protected ImageView image;
    
    /**
    Default constructor
@@ -64,26 +59,8 @@ public class Sprite
       this.image = new ImageView(imageName);
       this.image.setX(xPosition);
       this.image.setY(yPosition);
-   }
-   
-   /**
-   get the x position
-   @return x position
-   */
-   public int getXPosition()
-   {
-      return this.xPosition;
-   }
-   
-   /**
-   get the y position
-   @return y position
-   */
-   public int getYPosition()
-   {
-      return this.yPosition;
-   }
-   
+   }   
+    
    /**
    get the image
    @return the image
@@ -95,15 +72,17 @@ public class Sprite
    
    /**
    see's if the sprite is intersecting with another sprite
-   @return if the two sprites are intersecting
+   @param s another Sprite object, to which this Sprite object is intersecting
+   @return true if the two sprites are intersecting
    */
    public boolean isIntersect(Sprite s)
    {
-      return image.intersects(s.getImage().getBoundsInParent());
+      return image.getBoundsInParent().intersects(s.image.getBoundsInParent());
    }
    
    /**
    adds the image to the group
+   @param g a Group object which this Sprite object is added to.
    */
    public void addToGroup(Group g)
    {
@@ -111,13 +90,40 @@ public class Sprite
    }
    
    /**
-   moves the sprite
+   removes the sprite from the group
+   @param g a Group object which this Sprite object to be removed from.
    */
-   public void move(int deltaX, int deltaY, int duration)
+   public void removeFromGroup(Group g)
    {
-      TranslateTransition tt = new TranslateTransition(Duration.millis(duration), this.image);
-      tt.setByX(deltaX);
-      tt.setByY(deltaY);
-      tt.play();
+      g.getChildren().remove(this.image);
+   }
+
+   /**
+   moves the sprite, continuously following a path.
+   @param duration the duration that the sprite will move
+   */
+   public void move(int duration)
+   {
+      PathTransition pt = new PathTransition(Duration.millis(duration), createPath(), this.image);
+      pt.setOnFinished(e -> {
+         pt.setPath(createPath());              
+         pt.play();
+         
+      });
+      pt.play();
+   }   
+
+   //Abstract method, holds place for sub-class to provide detailed path
+   public abstract Path createPath();
+      
+   /**
+   Return a random position within the range
+   @param min the minimum the number can be
+   @param max the maxmimum the number can be 
+   */
+   public int getRandomNumber(int min, int max)
+   {
+      int range = max - min + 1;
+      return (int)(Math.random() * range) + min;
    }
 }
